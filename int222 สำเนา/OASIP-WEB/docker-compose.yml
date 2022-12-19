@@ -1,0 +1,42 @@
+version: "3"
+
+services:
+  db:
+    image: mysql:8
+    volumes:
+      - "./db/data:/var/lib/mysql"
+      - "./db/entrypoint:/docker-entrypoint-initdb.d/"
+    ports:
+      - "3306:3306"
+    environment:
+      - TZ=Asia/Bangkok
+      - LANG=C.UTF-8
+      - MYSQL_ROOT_PASSWORD=root
+
+  backend:
+    build: "./OASIP-BE"
+    depends_on:
+      - db
+    env_file:
+      - "./OASIP-BE/.env"
+    restart: on-failure
+    environment:
+      - MYSQL_USER=int222
+      - MYSQL_PASSWORD=int222
+      - MYSQL_HOST=db
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=int222
+
+  frontend:
+    build: "./OASIP-FE"
+    depends_on:
+      - backend
+
+  nginx:
+    build: "./nginx"
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - frontend
+      - backend
